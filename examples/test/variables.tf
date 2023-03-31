@@ -1,8 +1,8 @@
 locals {
 
   default_tags = {
-    "environment-type"             = lookup(var.environment_type, var.ENV, var.environment_type.sandbox)
-    "service-name"                 = var.stack
+    "environment-type" = lookup(var.environment_type, var.ENV, var.environment_type.sandbox)
+    "service-name"     = var.stack
   }
 
   common_tags = {
