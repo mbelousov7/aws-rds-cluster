@@ -26,7 +26,7 @@ resource "aws_rds_cluster" "primary" {
   backup_retention_period             = var.retention_period
   preferred_backup_window             = var.backup_window
   copy_tags_to_snapshot               = var.copy_tags_to_snapshot
-  final_snapshot_identifier           = lower(var.global_cluster_identifier)
+  final_snapshot_identifier           = lower(local.db_cluster_primary)
   skip_final_snapshot                 = var.skip_final_snapshot
   apply_immediately                   = var.apply_immediately
   vpc_security_group_ids              = compact(flatten([[module.aws_security_group.id], var.security_group_ids_add_external]))
@@ -45,6 +45,7 @@ resource "aws_rds_cluster" "primary" {
   }
 
   tags = merge(local.tags, { "Name" : local.db_cluster_primary })
+
 }
 
 resource "aws_rds_cluster" "secondary" {
@@ -59,6 +60,11 @@ resource "aws_rds_cluster" "secondary" {
   engine_mode               = local.is_serverless ? null : var.engine_mode
   cluster_identifier        = local.db_cluster_secondary
   global_cluster_identifier = var.global_cluster_identifier
+  source_region             = var.source_region
+  availability_zones        = var.availability_zones
+  storage_encrypted         = var.storage_encrypted
+  storage_type              = var.storage_type
+  iops                      = var.iops
   // no need to specify db name and creds for secondary cluster, here just for example
   //database_name                       = var.database_name
   //master_username                     = var.master_username
@@ -68,19 +74,17 @@ resource "aws_rds_cluster" "secondary" {
   backup_retention_period             = var.retention_period
   preferred_backup_window             = var.backup_window
   copy_tags_to_snapshot               = var.copy_tags_to_snapshot
-  final_snapshot_identifier           = lower(var.global_cluster_identifier)
+  final_snapshot_identifier           = lower(local.db_cluster_secondary)
   skip_final_snapshot                 = var.skip_final_snapshot
   apply_immediately                   = var.apply_immediately
-  source_region                       = var.source_region
-  availability_zones                  = var.availability_zones
-  kms_key_id                          = var.kms_key_arn
-  vpc_security_group_ids              = compact(flatten([[module.aws_security_group.id], var.security_group_ids_add_external]))
-  db_subnet_group_name                = var.db_subnet_group_name
-  db_cluster_parameter_group_name     = aws_rds_cluster_parameter_group.default.name
-  storage_encrypted                   = var.storage_encrypted
-  deletion_protection                 = var.deletion_protection
-  allow_major_version_upgrade         = var.allow_major_version_upgrade
-  enabled_cloudwatch_logs_exports     = var.enabled_cloudwatch_logs_exports
+
+  kms_key_id                      = var.kms_key_arn
+  vpc_security_group_ids          = compact(flatten([[module.aws_security_group.id], var.security_group_ids_add_external]))
+  db_subnet_group_name            = var.db_subnet_group_name
+  db_cluster_parameter_group_name = aws_rds_cluster_parameter_group.default.name
+  deletion_protection             = var.deletion_protection
+  allow_major_version_upgrade     = var.allow_major_version_upgrade
+  enabled_cloudwatch_logs_exports = var.enabled_cloudwatch_logs_exports
 
   dynamic "serverlessv2_scaling_configuration" {
     for_each = var.serverlessv2_scaling_configuration[*]
@@ -100,14 +104,14 @@ resource "aws_rds_cluster" "secondary" {
 }
 
 resource "aws_rds_cluster_endpoint" "primary_reader" {
-  count                       = var.cluster_type == "primary" ? 1 : 0
+  count                       = var.cluster_type == "primary" && var.cluster_custom_endpoint == true ? 1 : 0
   cluster_identifier          = join("", aws_rds_cluster.primary.*.id)
   cluster_endpoint_identifier = "${local.db_cluster_primary}-reader"
   custom_endpoint_type        = "READER"
 }
 
 resource "aws_rds_cluster_endpoint" "secondary_reader" {
-  count                       = var.cluster_type == "secondary" ? 1 : 0
+  count                       = var.cluster_type == "secondary" && var.cluster_custom_endpoint == true ? 1 : 0
   cluster_identifier          = join("", aws_rds_cluster.secondary.*.id)
   cluster_endpoint_identifier = "${local.db_cluster_secondary}-reader"
   custom_endpoint_type        = "READER"

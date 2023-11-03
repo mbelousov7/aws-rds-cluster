@@ -18,3 +18,12 @@ output "port" {
   description = "RDS instance port to connect"
 }
 
+output "id" {
+  value       = var.cluster_type == "primary" ? join("", aws_rds_cluster.primary.*.id) : join("", aws_rds_cluster.secondary.*.id)
+  description = "RDS cluster id"
+}
+
+output "vpc_security_group_ids" {
+  value       = compact(flatten([[module.aws_security_group.id], var.security_group_ids_add_external]))
+  description = "security group ids"
+}

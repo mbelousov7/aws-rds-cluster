@@ -18,6 +18,7 @@ resource "aws_rds_global_cluster" "default" {
 module "aurora_mysql_rds_cluster_primary" {
   source                             = "../.."
   cluster_type                       = "primary"
+  cluster_name                       = "primary"
   providers                          = { aws = aws.primary }
   vpc_id                             = var.vpc_id_primary
   db_engine                          = var.db_engine
@@ -60,6 +61,7 @@ module "aurora_mysql_rds_cluster_secondary" {
   source                             = "../.."
   depends_on                         = [time_sleep.wait_60_seconds]
   cluster_type                       = "secondary"
+  cluster_name                       = "secondary"
   providers                          = { aws = aws.secondary }
   vpc_id                             = var.vpc_id_secondary
   db_engine                          = var.db_engine

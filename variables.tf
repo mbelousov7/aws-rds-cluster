@@ -34,8 +34,20 @@ variable "cluster_size" {
 
 variable "global_cluster_identifier" {
   type        = string
-  description = "ID of the Aurora global cluster"
+  description = "ID of the global Aurora cluster"
   //default     = ""
+}
+
+variable "cluster_name" {
+  type        = string
+  description = "subname of the Aurora cluster"
+  //default     = ""
+}
+
+variable "cluster_custom_endpoint" {
+  type        = bool
+  description = "true - if you need to deploy additional custom reader endpoint"
+  default     = false
 }
 
 variable "vpc_id" {
@@ -92,7 +104,6 @@ variable "auto_minor_version_upgrade" {
   default     = false
   description = "Indicates that minor engine upgrades will be applied automatically to the DB instance during the maintenance window"
 }
-
 
 variable "db_instance_class" {
   type        = string
@@ -158,8 +169,6 @@ variable "instance_availability_zone_reader" {
   type    = string
   default = null
 }
-
-
 
 variable "security_group_cidr_blocks_allowed" {
   type        = list(string)
@@ -261,4 +270,99 @@ variable "allow_major_version_upgrade" {
   type        = bool
   default     = false
   description = "Enable to allow major engine version upgrades when changing engine versions. Defaults to false."
+}
+
+variable "performance_insights_enabled" {
+  type        = bool
+  default     = true
+  description = "Whether to enable Performance Insights"
+}
+
+variable "performance_insights_kms_key_id" {
+  type        = string
+  default     = ""
+  description = "The ARN for the KMS key to encrypt Performance Insights data. When specifying `performance_insights_kms_key_id`, `performance_insights_enabled` needs to be set to true"
+}
+
+variable "performance_insights_retention_period" {
+  description = "Amount of time in days to retain Performance Insights data. Either 7 (7 days) or 731 (2 years)"
+  type        = number
+  default     = 7
+}
+
+######################################## alarm configs #######################################
+
+variable "alarm_enable" {
+  type    = bool
+  default = true
+}
+
+variable "alarm_topic_arn" {
+  type    = string
+  default = ""
+}
+
+variable "alarm_config" {
+  type        = string
+  default     = ""
+  description = "add custom string into alarm descritptioon"
+}
+
+variable "cpu_utilization_threshold" {
+  description = "The maximum percentage of CPU utilization."
+  type        = number
+  default     = 90
+}
+
+variable "memory_utilization_threshold" {
+  description = "The minimum avaliable GB of Memory utilization."
+  type        = number
+  default     = 4
+}
+
+variable "aborted_clients_threshold" {
+  description = "The minimum task count threshold"
+  type        = number
+  default     = 50
+}
+
+variable "volume_read_iops_threshold" {
+  type    = number
+  default = 1.5
+}
+
+variable "volume_write_iops_threshold" {
+  type    = number
+  default = 1.5
+}
+
+variable "alarm_log_configs" {
+  /*
+  type = map(object({
+  }))
+  */
+  default = {
+    slowquery = {
+      metric_name               = "slowquery"
+      filter_pattern            = "\"Time\""
+      metric_value              = "1"
+      metric_default_value      = "0"
+      alarm_name                = "slowquery"
+      alarm_comparison_operator = "GreaterThanThreshold"
+      alarm_evaluation_periods  = 60
+      alarm_period              = 60
+      alarm_statistic           = "Sum"
+      alarm_treat_missing_data  = "notBreaching"
+      alarm_threshold           = 5
+      alarm_description         = "Multiple slowqueres in log files"
+    }
+
+  }
+
+  description = "The cloudwatch metrics filters definitions"
+}
+
+variable "db_port" {
+  type    = number
+  default = 3306
 }
