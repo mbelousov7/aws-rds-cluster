@@ -7,11 +7,11 @@ Latest versions must be at the top!
 - fix naming logic
 
 ## [1.1.1] - 2023-08-17
-- add default cpu, memory, aborted_clients alarms config by default (APPA-7492)
-- add default slowquery logs alarms config by default (APPA-7492)
+- add default cpu, memory, aborted_clients alarms config by default 
+- add default slowquery logs alarms config by default 
 
 ## [1.1.0] - 2023-08-01
-- add performance insights config by default(APPA-7530)
+- add performance insights config by default
 
 ## [1.0.4] - 2023-01-30
 - add naming logic for regional cluster
